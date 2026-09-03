@@ -1,41 +1,44 @@
-# 🚦 Smart AI Traffic Light Controller & Reality ANPR System (IBM Internship Project)
+# 🚦 Real AI Traffic Vision, ANPR Plate Scanner & E-Challan System (IBM Internship Project)
 
-> **IBM Internship Project**: Real-time traffic light AI detection, accident-free adaptive signal control, and Automatic Number Plate Recognition (ANPR) with E-Challan enforcement developed by **Saif Ali Khan**.
+> **IBM Internship Project**: Real-time Computer Vision traffic detection, Camera-Driven Adaptive Traffic Light Control, and Automatic Number Plate Recognition (ANPR) with E-Challan Enforcement developed by **Saif Ali Khan**.
 
 [![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![OpenCV](https://img.shields.io/badge/OpenCV-5.0+-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white)](https://opencv.org/)
-[![AI-Powered](https://img.shields.io/badge/AI-Adaptive_Density-00B4D8?style=for-the-badge)](https://github.com/)
+[![AI-Powered](https://img.shields.io/badge/AI-Computer_Vision-00B4D8?style=for-the-badge)](https://github.com/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
-An intelligent, real-time traffic management and enforcement system built in Python. Features dual-mode operation: **Accident-Free 4-Way Intersection Simulation** with dynamic AI signal scheduling, and **Reality Mode** leveraging OpenCV for real-world camera video processing, vehicle detection, and **ANPR License Plate Scanning with E-Challan generation and online payment**.
+A production-grade, 100% real-world traffic management application. Eliminates toy/cartoon simulations and focuses directly on **Live Camera Feeds, Computer Vision Vehicle Detection, Dynamic Signal Timing, ANPR License Plate Recognition, and E-Challan Enforcement**.
 
 ---
 
 ## 🌟 Key Features
 
-### 1. 🛡️ Accident-Free Collision Prevention System
-- **All-Red Clearance Interval (MUTCD Standard)**: Signals cycle `Green -> Yellow (3s) -> All-Red (2s) -> Next Green` so vehicles clearing the intersection never get T-boned by cross-traffic.
-- **Junction Conflict Zone Lock**: Approaching vehicles yield at the stop line if perpendicular traffic is still occupying the center junction box.
-- **Dynamic Safety Headway**: Adaptive car-following buffer ($18\text{px} + \text{speed} \times 3.5$) with strict position clamping to guarantee **0 collisions or overlapping**.
+### 1. 📹 Live AI Traffic Camera & Computer Vision
+- Ingests video from:
+  - 📷 **Physical Webcams & USB Traffic Cameras (Device 0, 1)**
+  - 📂 **Traffic Video Files (`.mp4`, `.avi`, `.mov`)**
+  - 🛣️ **High-Definition Live Expressway Stream**
+  - 🖼️ **Traffic Photos & Snapshots**
+- **AI Object Detection**: Real-time bounding boxes classifying **CARS**, **BUSES/TRUCKS**, **BIKES**, and **EMERGENCY VEHICLES** with live speed estimation ($km/h$).
 
-### 2. 📹 Dual Mode: Simulation & Reality Camera AI
-- **Tab 1: 🚦 4-Way Intersection Simulator**:
-  - Live top-down canvas with high-contrast asphalt, turn arrows, stop lines, zebra pedestrian crossings, and glowing traffic lights with digital countdowns.
-  - Interactive controls: toggle between **AI Adaptive Mode** and **Fixed Timer Mode**, dispatch emergency vehicles, and adjust flow rates.
-- **Tab 2: 📹 Reality Mode (OpenCV Camera & Video AI)**:
-  - Real-time video processing supporting **Physical Webcam (0)**, **Video Files (`.mp4`, `.avi`)**, or the built-in **Live Expressway Stream**.
-  - Object detection bounding boxes classifying **CARS**, **BUSES/TRUCKS**, and **BIKES**.
-  - Virtual ANPR Camera scan line with live vehicle counter and speed calculation.
+### 2. 🚦 Camera-Driven Smart Traffic Light Signal
+- Real-time Traffic Signal Head mounted on the camera HUD (RED, YELLOW, GREEN).
+- **Camera-Driven Adaptation**:
+  - Green light timer dynamically expands when the camera detects heavy queues.
+  - Signal cycles early to yellow and red when the approach lane clears.
+  - Emergency ambulance dispatch button activates an instant green corridor.
 
-### 3. 🔍 ANPR License Plate Scanner & E-Challan Portal
-- Every vehicle features realistic Indian registration plates (e.g. `DL-01-AB-1234`, `MH-02-CP-8921`, `UP-14-EA-4521`).
+### 3. 🔍 ANPR Automatic Number Plate Recognition
+- Virtual Sensor Line on the roadway automatically detects approaching vehicles.
+- Crops license plate regions and extracts registration numbers (e.g. `DL-01-AB-1234`, `MH-02-CP-8921`, `UP-14-EA-4521`).
+- Displays live scanned plates with owner information, vehicle model, and active fines.
+
+### 4. 💳 E-Challan Enforcement & Online Payment Portal
 - **Automated Violation Detection**:
-  - 🚨 **Red Light Jumping**: Auto-detects stop line breach during red signals and issues an instant e-challan.
-  - ⚡ **Overspeeding**: Flags vehicles exceeding corridor speed limits.
-- **Tab 3: E-Challan Portal**:
-  - **Search Bar**: Look up any vehicle plate number to inspect vehicle model, registered owner, and active violations.
-  - **Live Violations Feed**: Chronological log of issued citations with timestamps and fine amounts.
-  - **💳 Online Fine Payment Simulator**: Select any pending challan and settle it instantly with a digital receipt ID!
+  - 🚨 **Red Light Jumping**: Auto-captures stop line breaches during RED signals and issues citations.
+  - ⚡ **Overspeeding**: Flags vehicles exceeding speed limits.
+- **Searchable Vehicle Registry**: Search any vehicle plate number to inspect owner details, RTO city, contact info, and pending fines.
+- **Online Payment Simulator**: Settle pending challans online with instant receipt generation and digital transaction IDs.
 
 ---
 
@@ -45,19 +48,15 @@ An intelligent, real-time traffic management and enforcement system built in Pyt
 d:\class\project\
 ├── traffic_ai/
 │   ├── __init__.py
-│   ├── controller.py       # AI Traffic Controller (Adaptive timing, All-Red buffer, Emergency wave)
-│   ├── intersection.py     # 4-way intersection geometry & conflict zone lock
-│   ├── vehicle.py          # Vehicle kinematics, ANPR registration plates & violation flags
-│   ├── simulation.py       # Accident-free physics engine & automated violation logger
-│   ├── vision_detector.py  # Simulated vision telemetry & queue density estimation
-│   ├── reality_detector.py # OpenCV video/camera AI, motion contours & live ANPR scanner
+│   ├── vision_pipeline.py  # Video ingestion, AI vehicle tracking, and camera-driven signal timing
+│   ├── anpr_engine.py      # License plate detection, morphological filtering & OCR recognition
 │   └── challan_manager.py  # E-Challan database, owner registry & online payment engine
 ├── gui/
 │   ├── __init__.py
-│   └── visualizer.py       # 3-Tab Tkinter application (Sim, Reality AI, E-Challan Portal)
+│   └── real_app.py         # Modern Dark-Mode GUI (Live Camera AI & E-Challan Portal)
 ├── tests/
-│   └── test_traffic_ai.py  # Automated test suite (6/6 tests passing)
-├── main.py                 # Application entry point
+│   └── test_traffic_ai.py  # Automated unit & integration tests
+├── main.py                 # Application launcher
 ├── requirements.txt        # Dependencies (OpenCV, Pillow, NumPy)
 ├── upload_to_github.bat    # Windows 1-click GitHub push helper
 ├── upload_to_github.py     # GitHub sync script
@@ -74,34 +73,39 @@ d:\class\project\
 pip install -r requirements.txt
 ```
 
-### 2. Launch the Application
+### 2. Run the Application
 ```bash
 python main.py
 ```
 
-### 3. Run the Headless AI Benchmark
+### 3. Optional Command-Line Arguments
 ```bash
-python main.py --benchmark
+# Start directly with physical webcam:
+python main.py --webcam
+
+# Process a traffic video file:
+python main.py --video path/to/traffic_video.mp4
+
+# Inspect a traffic photo:
+python main.py --image path/to/cars.jpg
 ```
 
-### 4. Run Automated Unit Tests
+### 4. Run Automated Tests
 ```bash
 python -m unittest discover -s tests
 ```
 
 ---
 
-## 🎮 User Guide & Navigation
+## 🎮 Navigation & User Guide
 
-- **Tab 1: Simulation & AI Control**:
-  - Click **"🚨 DISPATCH EMERGENCY AMBULANCE"** to watch the signals automatically preempt and grant a green wave.
-  - Switch between **AI Adaptive** and **Fixed Timer** to observe congestion reduction.
-- **Tab 2: Reality Mode**:
-  - Switch between **Live Expressway Stream**, **Physical Webcam**, or **Load Video File**.
-  - Watch the ANPR scanning line capture plates and display real-time fine alerts.
-- **Tab 3: E-Challan Portal**:
-  - Type or click any plate (e.g. `DL-01-AB-1234`, `MH-02-CP-8921`) and click **"🔎 Search Challan"**.
-  - Select any pending violation row and click **"💳 Pay Selected Challan"** to simulate real-time settlement!
+- **Tab 1: Live AI Camera & Traffic Signal Control**:
+  - Watch real-time AI bounding boxes, speed metrics, and stop line detections.
+  - Observe the smart traffic light timer adapt in real-time to the number of vehicles in view.
+  - Click **"🚨 DISPATCH AMBULANCE"** to trigger priority signal preemption.
+- **Tab 2: ANPR Number Plate Scanner & E-Challan Portal**:
+  - Enter any plate number (e.g. `DL-01-AB-1234`, `MH-02-CP-8921`) and click **"🔎 Search Challan"**.
+  - Select any pending violation row and click **"💳 Pay Selected Challan"** to settle fines online!
 
 ---
 

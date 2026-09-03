@@ -1,8 +1,6 @@
 """
-Main Entry Point for AI Smart Traffic Light Controller & Simulator.
-Supports:
-- GUI Mode: Multi-tab interface (Simulation, Reality Camera AI, E-Challan Portal)
-- Benchmark Mode: Headless comparative test (--benchmark)
+Real AI Traffic Vision, ANPR Number Plate Detection & Smart Signal System.
+Directly launches the Real AI Camera Detection & E-Challan Enforcement Application.
 """
 
 import argparse
@@ -10,83 +8,33 @@ import sys
 import tkinter as tk
 
 from traffic_ai.challan_manager import ChallanManager
-from traffic_ai.controller import ControlMode, TrafficController
-from traffic_ai.intersection import Intersection
-from traffic_ai.simulation import TrafficSimulation
-from traffic_ai.vision_detector import VisionDetector
-from gui.visualizer import TrafficVisualizer
-
-
-def run_benchmark(steps: int = 1000):
-    """Runs headless benchmark comparing AI Adaptive vs Fixed Timer mode."""
-    print("==================================================")
-    print("[*] RUNNING HEADLESS AI TRAFFIC BENCHMARK")
-    print("==================================================")
-
-    # 1. Test Fixed Timer
-    inter_fixed = Intersection()
-    ctrl_fixed = TrafficController(inter_fixed, mode=ControlMode.FIXED_TIMER)
-    vision_fixed = VisionDetector()
-    challan_fixed = ChallanManager()
-    sim_fixed = TrafficSimulation(inter_fixed, ctrl_fixed, vision_fixed, challan_manager=challan_fixed, spawn_rate=0.6)
-
-    print(f"Executing Fixed Timer simulation ({steps} ticks)...")
-    for _ in range(steps):
-        sim_fixed.update(dt=0.1)
-
-    fixed_passed = sim_fixed.total_passed
-    fixed_delay = sim_fixed.get_average_wait_time()
-    fixed_throughput = sim_fixed.get_throughput_rate()
-
-    # 2. Test AI Adaptive
-    inter_ai = Intersection()
-    ctrl_ai = TrafficController(inter_ai, mode=ControlMode.AI_ADAPTIVE)
-    vision_ai = VisionDetector()
-    challan_ai = ChallanManager()
-    sim_ai = TrafficSimulation(inter_ai, ctrl_ai, vision_ai, challan_manager=challan_ai, spawn_rate=0.6)
-
-    print(f"Executing AI Adaptive simulation ({steps} ticks)...")
-    for _ in range(steps):
-        sim_ai.update(dt=0.1)
-
-    ai_passed = sim_ai.total_passed
-    ai_delay = sim_ai.get_average_wait_time()
-    ai_throughput = sim_ai.get_throughput_rate()
-
-    print("\n--- BENCHMARK RESULTS ---")
-    print(f"{'Metric':<25} | {'Fixed Timer':<15} | {'AI Adaptive':<15}")
-    print("-" * 60)
-    print(f"{'Vehicles Passed':<25} | {fixed_passed:<15} | {ai_passed:<15}")
-    print(f"{'Throughput (veh/min)':<25} | {fixed_throughput:<15.1f} | {ai_throughput:<15.1f}")
-    print(f"{'Average Delay (s/veh)':<25} | {fixed_delay:<15.2f} | {ai_delay:<15.2f}")
-    
-    improvement = ((fixed_delay - ai_delay) / max(0.01, fixed_delay)) * 100 if fixed_delay > 0 else 0
-    print(f"\n[+] AI Adaptive Delay Reduction: {improvement:+.1f}%")
-    print("==================================================")
+from traffic_ai.vision_pipeline import VisionPipeline
+from gui.real_app import RealTrafficApp
 
 
 def main():
-    parser = argparse.ArgumentParser(description="AI Smart Traffic Light Simulation & Reality ANPR")
-    parser.add_argument("--benchmark", action="store_true", help="Run headless benchmark comparison")
-    parser.add_argument("--mode", choices=["ai", "fixed"], default="ai", help="Initial controller mode")
+    parser = argparse.ArgumentParser(description="Real AI Traffic Vision & E-Challan System")
+    parser.add_argument("--webcam", action="store_true", help="Start directly with physical webcam")
+    parser.add_argument("--video", type=str, help="Path to traffic video file")
+    parser.add_argument("--image", type=str, help="Path to traffic image file")
     args = parser.parse_args()
 
-    if args.benchmark:
-        run_benchmark()
-        return
-
-    # Graphical User Interface Mode
-    intersection = Intersection(width=800, height=800, road_width=160)
-    mode = ControlMode.AI_ADAPTIVE if args.mode == "ai" else ControlMode.FIXED_TIMER
-    controller = TrafficController(intersection, mode=mode)
-    vision = VisionDetector()
+    # Initialize Real AI Vision Engine & E-Challan Manager
     challan_manager = ChallanManager()
-    simulation = TrafficSimulation(
-        intersection, controller, vision, challan_manager=challan_manager, spawn_rate=0.45
-    )
+    pipeline = VisionPipeline(challan_manager=challan_manager)
 
+    if args.webcam:
+        pipeline.set_source_webcam(0)
+    elif args.video:
+        pipeline.set_source_video_file(args.video)
+    elif args.image:
+        pipeline.set_source_image(args.image)
+    else:
+        pipeline.set_source_synthetic()
+
+    # Launch Desktop Application
     root = tk.Tk()
-    app = TrafficVisualizer(root, simulation, challan_manager=challan_manager)
+    app = RealTrafficApp(root, pipeline=pipeline)
     root.mainloop()
 
 
