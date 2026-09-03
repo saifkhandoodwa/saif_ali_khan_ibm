@@ -1,0 +1,4 @@
+# AI Traffic Light Control System
+# Core requirements (numpy and Pillow are already installed in environment)
+numpy>=1.24.0
+Pillow>=9.0.0
