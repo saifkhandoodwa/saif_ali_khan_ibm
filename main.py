@@ -1,11 +1,15 @@
 """
 Main Entry Point for AI Smart Traffic Light Controller & Simulator.
+Supports:
+- GUI Mode: Multi-tab interface (Simulation, Reality Camera AI, E-Challan Portal)
+- Benchmark Mode: Headless comparative test (--benchmark)
 """
 
 import argparse
 import sys
 import tkinter as tk
 
+from traffic_ai.challan_manager import ChallanManager
 from traffic_ai.controller import ControlMode, TrafficController
 from traffic_ai.intersection import Intersection
 from traffic_ai.simulation import TrafficSimulation
@@ -23,7 +27,8 @@ def run_benchmark(steps: int = 1000):
     inter_fixed = Intersection()
     ctrl_fixed = TrafficController(inter_fixed, mode=ControlMode.FIXED_TIMER)
     vision_fixed = VisionDetector()
-    sim_fixed = TrafficSimulation(inter_fixed, ctrl_fixed, vision_fixed, spawn_rate=0.6)
+    challan_fixed = ChallanManager()
+    sim_fixed = TrafficSimulation(inter_fixed, ctrl_fixed, vision_fixed, challan_manager=challan_fixed, spawn_rate=0.6)
 
     print(f"Executing Fixed Timer simulation ({steps} ticks)...")
     for _ in range(steps):
@@ -37,7 +42,8 @@ def run_benchmark(steps: int = 1000):
     inter_ai = Intersection()
     ctrl_ai = TrafficController(inter_ai, mode=ControlMode.AI_ADAPTIVE)
     vision_ai = VisionDetector()
-    sim_ai = TrafficSimulation(inter_ai, ctrl_ai, vision_ai, spawn_rate=0.6)
+    challan_ai = ChallanManager()
+    sim_ai = TrafficSimulation(inter_ai, ctrl_ai, vision_ai, challan_manager=challan_ai, spawn_rate=0.6)
 
     print(f"Executing AI Adaptive simulation ({steps} ticks)...")
     for _ in range(steps):
@@ -60,7 +66,7 @@ def run_benchmark(steps: int = 1000):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="AI Smart Traffic Light Simulation")
+    parser = argparse.ArgumentParser(description="AI Smart Traffic Light Simulation & Reality ANPR")
     parser.add_argument("--benchmark", action="store_true", help="Run headless benchmark comparison")
     parser.add_argument("--mode", choices=["ai", "fixed"], default="ai", help="Initial controller mode")
     args = parser.parse_args()
@@ -74,10 +80,13 @@ def main():
     mode = ControlMode.AI_ADAPTIVE if args.mode == "ai" else ControlMode.FIXED_TIMER
     controller = TrafficController(intersection, mode=mode)
     vision = VisionDetector()
-    simulation = TrafficSimulation(intersection, controller, vision, spawn_rate=0.5)
+    challan_manager = ChallanManager()
+    simulation = TrafficSimulation(
+        intersection, controller, vision, challan_manager=challan_manager, spawn_rate=0.45
+    )
 
     root = tk.Tk()
-    app = TrafficVisualizer(root, simulation)
+    app = TrafficVisualizer(root, simulation, challan_manager=challan_manager)
     root.mainloop()
 
 

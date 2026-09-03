@@ -1,27 +1,41 @@
-# 🚦 Smart AI Traffic Light Controller & Simulator (IBM Internship Project)
+# 🚦 Smart AI Traffic Light Controller & Reality ANPR System (IBM Internship Project)
 
-> **IBM Internship Project**: Real-time traffic light AI detection & adaptive signal control system developed by **Saif Ali Khan**.
+> **IBM Internship Project**: Real-time traffic light AI detection, accident-free adaptive signal control, and Automatic Number Plate Recognition (ANPR) with E-Challan enforcement developed by **Saif Ali Khan**.
 
 [![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![OpenCV](https://img.shields.io/badge/OpenCV-5.0+-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white)](https://opencv.org/)
 [![AI-Powered](https://img.shields.io/badge/AI-Adaptive_Density-00B4D8?style=for-the-badge)](https://github.com/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
-An intelligent, real-time traffic signal optimization system built in Python. Unlike traditional static round-robin timers, this system leverages **Computer Vision sensing and Adaptive Heuristic AI** to dynamically allocate green light durations based on real-time vehicle queue density, waiting times, and emergency vehicle preemption.
+An intelligent, real-time traffic management and enforcement system built in Python. Features dual-mode operation: **Accident-Free 4-Way Intersection Simulation** with dynamic AI signal scheduling, and **Reality Mode** leveraging OpenCV for real-world camera video processing, vehicle detection, and **ANPR License Plate Scanning with E-Challan generation and online payment**.
 
 ---
 
 ## 🌟 Key Features
 
-- 🧠 **Dynamic AI Green Phase Allocation**:
-  - Dynamically calculates the optimal green duration ($T_{green}$) based on approach queue lengths and vehicle delay times to eliminate empty-intersection waiting.
-- 🚨 **Emergency Vehicle Preemption (Priority Wave)**:
-  - Immediately detects emergency vehicles (ambulances/fire trucks) and triggers a priority green wave corridor.
-- 🖥️ **Interactive Live Simulation Dashboard**:
-  - High-performance top-down 4-way intersection canvas with realistic traffic lights, digital countdowns, and car-following physics.
-  - Live telemetry displays: queue lengths per lane, throughput (vehicles/min), and average waiting delay.
-  - Interactive controls: toggle between **AI Adaptive Mode** and **Fixed Timer Mode** in real time, spawn emergency vehicles, adjust traffic flow rates, and pause/resume.
-- ⚡ **Headless Benchmark Engine**:
-  - Built-in simulation benchmark comparing AI Adaptive vs. Fixed Timer mode (`python main.py --benchmark`). Demonstrates **~20%+ reduction in vehicle delays**!
+### 1. 🛡️ Accident-Free Collision Prevention System
+- **All-Red Clearance Interval (MUTCD Standard)**: Signals cycle `Green -> Yellow (3s) -> All-Red (2s) -> Next Green` so vehicles clearing the intersection never get T-boned by cross-traffic.
+- **Junction Conflict Zone Lock**: Approaching vehicles yield at the stop line if perpendicular traffic is still occupying the center junction box.
+- **Dynamic Safety Headway**: Adaptive car-following buffer ($18\text{px} + \text{speed} \times 3.5$) with strict position clamping to guarantee **0 collisions or overlapping**.
+
+### 2. 📹 Dual Mode: Simulation & Reality Camera AI
+- **Tab 1: 🚦 4-Way Intersection Simulator**:
+  - Live top-down canvas with high-contrast asphalt, turn arrows, stop lines, zebra pedestrian crossings, and glowing traffic lights with digital countdowns.
+  - Interactive controls: toggle between **AI Adaptive Mode** and **Fixed Timer Mode**, dispatch emergency vehicles, and adjust flow rates.
+- **Tab 2: 📹 Reality Mode (OpenCV Camera & Video AI)**:
+  - Real-time video processing supporting **Physical Webcam (0)**, **Video Files (`.mp4`, `.avi`)**, or the built-in **Live Expressway Stream**.
+  - Object detection bounding boxes classifying **CARS**, **BUSES/TRUCKS**, and **BIKES**.
+  - Virtual ANPR Camera scan line with live vehicle counter and speed calculation.
+
+### 3. 🔍 ANPR License Plate Scanner & E-Challan Portal
+- Every vehicle features realistic Indian registration plates (e.g. `DL-01-AB-1234`, `MH-02-CP-8921`, `UP-14-EA-4521`).
+- **Automated Violation Detection**:
+  - 🚨 **Red Light Jumping**: Auto-detects stop line breach during red signals and issues an instant e-challan.
+  - ⚡ **Overspeeding**: Flags vehicles exceeding corridor speed limits.
+- **Tab 3: E-Challan Portal**:
+  - **Search Bar**: Look up any vehicle plate number to inspect vehicle model, registered owner, and active violations.
+  - **Live Violations Feed**: Chronological log of issued citations with timestamps and fine amounts.
+  - **💳 Online Fine Payment Simulator**: Select any pending challan and settle it instantly with a digital receipt ID!
 
 ---
 
@@ -31,123 +45,65 @@ An intelligent, real-time traffic signal optimization system built in Python. Un
 d:\class\project\
 ├── traffic_ai/
 │   ├── __init__.py
-│   ├── controller.py       # AI Traffic Controller (Adaptive dynamic green timer & phase scheduler)
-│   ├── intersection.py     # 4-way intersection state machine (North, South, East, West)
-│   ├── vehicle.py          # Vehicle entities & kinematics (Cars, Buses, Trucks, Bikes, Ambulances)
-│   ├── simulation.py       # Traffic simulation engine & car-following physics
-│   └── vision_detector.py  # Computer vision telemetry & density estimation module
+│   ├── controller.py       # AI Traffic Controller (Adaptive timing, All-Red buffer, Emergency wave)
+│   ├── intersection.py     # 4-way intersection geometry & conflict zone lock
+│   ├── vehicle.py          # Vehicle kinematics, ANPR registration plates & violation flags
+│   ├── simulation.py       # Accident-free physics engine & automated violation logger
+│   ├── vision_detector.py  # Simulated vision telemetry & queue density estimation
+│   ├── reality_detector.py # OpenCV video/camera AI, motion contours & live ANPR scanner
+│   └── challan_manager.py  # E-Challan database, owner registry & online payment engine
 ├── gui/
 │   ├── __init__.py
-│   └── visualizer.py       # Tkinter GUI Visualizer & telemetry dashboard
+│   └── visualizer.py       # 3-Tab Tkinter application (Sim, Reality AI, E-Challan Portal)
 ├── tests/
-│   └── test_traffic_ai.py  # Automated unit tests
-├── main.py                 # Application launcher
-├── requirements.txt        # Python dependencies
+│   └── test_traffic_ai.py  # Automated test suite (6/6 tests passing)
+├── main.py                 # Application entry point
+├── requirements.txt        # Dependencies (OpenCV, Pillow, NumPy)
 ├── upload_to_github.bat    # Windows 1-click GitHub push helper
-├── upload_to_github.py     # Cross-platform GitHub repository setup tool
+├── upload_to_github.py     # GitHub sync script
 ├── .gitignore              # Git ignore rules
 └── README.md               # Documentation
 ```
 
 ---
 
-## 📐 AI Algorithm Formulation
-
-### 1. Phase Demand Score
-For an intersection phase $P \in \{\text{North-South}, \text{East-West}\}$:
-
-$$\text{Demand}(P) = \sum_{d \in P} \left( 1.5 \cdot W_{\text{load}}(d) + 1.8 \cdot T_{\text{avg\_wait}}(d) + 2.5 \cdot N_{\text{waiting}}(d) \right)$$
-
-Where:
-- $W_{\text{load}}$: Weighted vehicle mass (Buses & Trucks carry higher weight).
-- $T_{\text{avg\_wait}}$: Average stationary wait time in seconds.
-- $N_{\text{waiting}}$: Number of stopped vehicles behind the stop line.
-
-### 2. Optimal Green Time Calculation
-
-$$T_{\text{green}} = \text{clamp}\left( T_{\min} + (2.0 \cdot N_{\max}) + (0.8 \cdot T_{\max\_wait}),\ T_{\min},\ T_{\max} \right)$$
-
-- $T_{\min} = 6.0\text{s}$ (minimum clearance window).
-- $T_{\max} = 28.0\text{s}$ (prevent starvation on cross street).
-- Early clearance trigger: If current green phase has 0 waiting vehicles while cross phase has high demand, signal transitions to yellow immediately to maximize intersection capacity.
-
----
-
 ## 🚀 Getting Started
 
-### 1. Prerequisites
-- Python 3.8+ installed
-- Git installed
-
-### 2. Installation
-Clone the repository (or extract files) and install dependencies:
-
+### 1. Installation
 ```bash
 pip install -r requirements.txt
 ```
 
-*(Note: Core GUI and simulation use standard Python libraries, so it runs out-of-the-box!)*
-
-### 3. Running the Live Simulation
-Launch the visual interactive simulator:
-
+### 2. Launch the Application
 ```bash
 python main.py
 ```
 
-### 4. Running the Benchmark (AI vs Fixed Timer)
-Compare the AI Adaptive controller against classic fixed-timer scheduling in headless mode:
-
+### 3. Run the Headless AI Benchmark
 ```bash
 python main.py --benchmark
 ```
 
-### 5. Running Automated Tests
+### 4. Run Automated Unit Tests
 ```bash
 python -m unittest discover -s tests
 ```
 
 ---
 
-## 🎮 Simulation Controls & Dashboard
+## 🎮 User Guide & Navigation
 
-| Control | Description |
-|---|---|
-| **AI Adaptive (Smart)** | Real-time density-driven scheduling and early-phase clearing. |
-| **Fixed Timer (Classic)** | Traditional 14-second fixed round-robin cycle. |
-| **Dispatch Emergency Vehicle** | Injects an ambulance with emergency siren to demonstrate priority preemption. |
-| **Traffic Flow Rate Slider** | Dynamically scales vehicle arrival rate from light traffic to rush hour gridlock. |
-| **Pause / Resume** | Freezes simulation ticks for close inspection. |
-| **Reset** | Flushes active vehicles and resets simulation statistics. |
-
----
-
-## 📤 Uploading to GitHub
-
-You can upload this project to your GitHub account in two simple ways:
-
-### Option A: Using the Interactive Upload Script (Easiest)
-Run:
-```bash
-python upload_to_github.py
-```
-Or double-click `upload_to_github.bat` on Windows. It will prompt you for your GitHub repository URL (e.g. `https://github.com/<your-username>/ai-traffic-light.git`) and automatically commit and push all code!
-
-### Option B: Using Git Command Line
-1. Create a new empty repository on [GitHub](https://github.com/new) (e.g., `ai-traffic-light`).
-2. Run the following commands in your terminal:
-
-```bash
-git init
-git add .
-git commit -m "feat: initial release of AI smart traffic light controller"
-git branch -M main
-git remote add origin https://github.com/<YOUR_USERNAME>/<YOUR_REPOSITORY>.git
-git push -u origin main
-```
+- **Tab 1: Simulation & AI Control**:
+  - Click **"🚨 DISPATCH EMERGENCY AMBULANCE"** to watch the signals automatically preempt and grant a green wave.
+  - Switch between **AI Adaptive** and **Fixed Timer** to observe congestion reduction.
+- **Tab 2: Reality Mode**:
+  - Switch between **Live Expressway Stream**, **Physical Webcam**, or **Load Video File**.
+  - Watch the ANPR scanning line capture plates and display real-time fine alerts.
+- **Tab 3: E-Challan Portal**:
+  - Type or click any plate (e.g. `DL-01-AB-1234`, `MH-02-CP-8921`) and click **"🔎 Search Challan"**.
+  - Select any pending violation row and click **"💳 Pay Selected Challan"** to simulate real-time settlement!
 
 ---
 
 ## 📄 License
 This project is open-source under the [MIT License](LICENSE).
->>>>>>> 1977a73 (feat: AI smart traffic light controller and visual simulation)

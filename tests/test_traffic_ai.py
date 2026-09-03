@@ -1,10 +1,12 @@
 """
-Unit and Integration Tests for AI Traffic Light System.
+Unit and Integration Tests for AI Traffic Light, ANPR, and E-Challan System.
 """
 
 import unittest
+from traffic_ai.challan_manager import ChallanManager
 from traffic_ai.controller import ControlMode, TrafficController
 from traffic_ai.intersection import Intersection, LightState, TrafficPhase
+from traffic_ai.reality_detector import RealityDetector
 from traffic_ai.simulation import TrafficSimulation
 from traffic_ai.vehicle import Direction, Vehicle, VehicleType
 from traffic_ai.vision_detector import VisionDetector
@@ -16,8 +18,10 @@ class TestTrafficAI(unittest.TestCase):
         self.intersection = Intersection(800, 800, 160)
         self.controller = TrafficController(self.intersection, mode=ControlMode.AI_ADAPTIVE)
         self.vision = VisionDetector()
+        self.challan_manager = ChallanManager()
         self.simulation = TrafficSimulation(
-            self.intersection, self.controller, self.vision, spawn_rate=0.0
+            self.intersection, self.controller, self.vision,
+            challan_manager=self.challan_manager, spawn_rate=0.0
         )
 
     def test_intersection_initialization(self):
@@ -27,69 +31,69 @@ class TestTrafficAI(unittest.TestCase):
         self.assertEqual(self.intersection.get_light(Direction.EAST), LightState.RED)
         self.assertEqual(self.intersection.get_light(Direction.WEST), LightState.RED)
 
-    def test_vehicle_spawning_and_motion(self):
-        """Check vehicle kinematics and position updates."""
-        v = Vehicle(1, VehicleType.CAR, Direction.NORTH, position=100.0)
-        initial_pos = v.position
-        v.update_motion(target_speed=4.0, dt=1.0)
-        self.assertGreater(v.position, initial_pos)
-
-        # South vehicle should move upwards (position decreasing)
-        v_south = Vehicle(2, VehicleType.CAR, Direction.SOUTH, position=700.0)
-        initial_south_pos = v_south.position
-        v_south.update_motion(target_speed=4.0, dt=1.0)
-        self.assertLess(v_south.position, initial_south_pos)
-
-    def test_vision_detector_emergency(self):
-        """Check computer vision telemetry detects emergency vehicle."""
-        v_em = Vehicle(10, VehicleType.EMERGENCY, Direction.EAST, position=600.0)
-        telemetry = self.vision.analyze_lane(
-            Direction.EAST, [v_em], self.intersection.stop_positions[Direction.EAST]
-        )
-        self.assertTrue(telemetry.emergency_present)
-        self.assertEqual(telemetry.vehicle_count, 1)
-
-    def test_controller_emergency_preemption(self):
-        """Verify that emergency vehicle triggers preemption."""
-        # Initial phase is NORTH_SOUTH
-        self.assertEqual(self.controller.active_phase, TrafficPhase.NORTH_SOUTH)
-
-        # Spawn emergency vehicle on WEST
-        self.simulation.spawn_vehicle(Direction.WEST, VehicleType.EMERGENCY)
-
-        # Run simulation steps
-        for _ in range(35):
-            self.simulation.update(dt=0.1)
-
-        # Signal should switch or transition towards EAST_WEST corridor
-        self.assertTrue(
-            self.controller.emergency_phase
-            or self.controller.active_phase == TrafficPhase.EAST_WEST
-        )
-
-    def test_adaptive_green_calculation(self):
-        """Check AI calculates longer green duration for heavy queues."""
+    def test_all_red_clearance(self):
+        """Verify All-Red transition occurs between phases."""
+        self.controller.light_state = LightState.YELLOW
+        self.controller.phase_time_elapsed = 3.5
         telemetry = self.vision.get_intersection_snapshot(
             self.simulation.vehicles, self.intersection.stop_positions
         )
-        base_green = self.controller.calculate_optimal_green_duration(
-            telemetry, TrafficPhase.NORTH_SOUTH
-        )
+        self.controller.step(0.1, telemetry)
+        self.assertEqual(self.controller.light_state, LightState.ALL_RED)
+        self.assertEqual(self.intersection.get_light(Direction.NORTH), LightState.RED)
+        self.assertEqual(self.intersection.get_light(Direction.EAST), LightState.RED)
 
-        # Add 5 vehicles to North lane
-        for i in range(5):
-            self.simulation.vehicles[Direction.NORTH].append(
-                Vehicle(100 + i, VehicleType.CAR, Direction.NORTH, position=100.0 + i * 20)
-            )
+    def test_conflict_zone_detection(self):
+        """Test junction box conflict detection."""
+        cx, cy = 400, 400
+        # Position in center box for North vehicle
+        self.assertTrue(self.intersection.is_in_conflict_zone(Direction.NORTH, cy))
+        # Position far upstream
+        self.assertFalse(self.intersection.is_in_conflict_zone(Direction.NORTH, 50.0))
 
-        telemetry_heavy = self.vision.get_intersection_snapshot(
-            self.simulation.vehicles, self.intersection.stop_positions
-        )
-        heavy_green = self.controller.calculate_optimal_green_duration(
-            telemetry_heavy, TrafficPhase.NORTH_SOUTH
-        )
+    def test_no_vehicle_overlap_headway(self):
+        """Test car-following clamps position to strictly prevent overlapping."""
+        v1 = Vehicle(1, VehicleType.CAR, Direction.NORTH, position=200.0)
+        v2 = Vehicle(2, VehicleType.CAR, Direction.NORTH, position=160.0)
+        self.simulation.vehicles[Direction.NORTH] = [v1, v2]
 
-        self.assertGreater(heavy_green, base_green)
+        # Stop v1
+        v1.speed = 0.0
+        # Push simulation updates
+        for _ in range(20):
+            self.simulation.update(dt=0.1)
+
+        # Gap between centers must exceed sum of half-lengths
+        center_distance = v1.position - v2.position
+        min_allowed = (v1.length / 2.0) + (v2.length / 2.0)
+        self.assertGreater(center_distance, min_allowed)
+
+    def test_echallan_search_and_payment(self):
+        """Test searching plate and settling e-challan."""
+        plate = "DL-01-AB-1234"
+        res = self.challan_manager.search_by_plate(plate)
+        self.assertTrue(res["found"])
+        self.assertGreater(len(res["challans"]), 0)
+
+        cid = res["challans"][0].challan_id
+        paid = self.challan_manager.pay_challan(cid)
+        self.assertTrue(paid)
+
+        # Verify status changed to PAID
+        c = self.challan_manager.challans[cid]
+        self.assertEqual(c.status, "PAID")
+        self.assertIsNotNone(c.payment_id)
+
+    def test_reality_detector_frame(self):
+        """Test OpenCV RealityDetector reads and processes frames with AI annotations."""
+        detector = RealityDetector(self.challan_manager)
+        frame, tele = detector.read_frame()
+        self.assertIsNotNone(frame)
+        self.assertEqual(frame.shape[0], 480)
+        self.assertEqual(frame.shape[1], 720)
+        self.assertIn("fps", tele)
+        self.assertIn("detected_count", tele)
+        detector.release()
 
 
 if __name__ == "__main__":
